@@ -6,16 +6,19 @@ import 'adiciona_separador.dart';
 ///
 /// `casasDecimais` indica a quantidade de casas usadas.
 class CentavosInputFormatter extends TextInputFormatter {
-  CentavosInputFormatter({this.moeda = false, this.casasDecimais = 2})
-      : assert(casasDecimais == 2 || casasDecimais == 3,
+  CentavosInputFormatter({
+    this.moeda = false,
+    this.casasDecimais = 2,
+    this.mostrarZerado = false,
+  }) : assert(casasDecimais == 2 || casasDecimais == 3,
             'Quantidade de casas decimais deve ser 2 ou 3. Informado: $casasDecimais');
 
   final bool moeda;
   final int casasDecimais;
+  final bool mostrarZerado;
 
   @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     final newValueLength = newValue.text.length;
 
     // Verifica o tamanho máximo do campo.
@@ -33,16 +36,14 @@ class CentavosInputFormatter extends TextInputFormatter {
     var valorFinal = newValue.text;
     var numero = int.parse(newValue.text);
 
-    var textValue = newValue.text.padLeft(
-        newValue.text.length == 1 ? casasDecimais + 1 : casasDecimais, "");
+    var textValue = newValue.text.padLeft(newValue.text.length == 1 ? casasDecimais + 1 : casasDecimais, "");
     if (textValue.length >= casasDecimais) {
-      centsValue = textValue.substring(
-          textValue.length - casasDecimais, textValue.length);
+      centsValue = textValue.substring(textValue.length - casasDecimais, textValue.length);
       valorFinal = textValue.substring(0, textValue.length - casasDecimais);
     }
 
     // apaga o campo quando os valores foram zero.
-    if (numero == 0 && int.tryParse(centsValue) == 0) {
+    if (mostrarZerado == false && numero == 0 && int.tryParse(centsValue) == 0) {
       return const TextEditingValue(
         text: "",
         selection: TextSelection.collapsed(offset: 0),
@@ -63,8 +64,10 @@ class CentavosInputFormatter extends TextInputFormatter {
       );
     }
 
+    final minCentsValor = mostrarZerado ? 0 : 1;
+
     // formata o número com 0, + centavos
-    if (numero > 0 && numero <= 9) {
+    if (numero >= minCentsValor && numero <= 9) {
       if (casasDecimais == 3) {
         centsValue = "00" + numero.toString();
       } else {
